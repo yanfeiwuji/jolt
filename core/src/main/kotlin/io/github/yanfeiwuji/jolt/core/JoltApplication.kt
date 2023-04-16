@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.parameters.Parameter
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -29,6 +30,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport
     PageImpl::class
 )
 @EnableJpaAuditing
-@Import(JoltCrudConfiguration::class)
+@Import(JoltCrudConfiguration::class, JoltSecurityConfig::class)
+@EnableAspectJAutoProxy
 annotation class JoltApplication
 

@@ -78,8 +78,9 @@ subprojects {
         implementation("org.springframework.security:spring-security-oauth2-resource-server")
         // https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-jose
         implementation("org.springframework.security:spring-security-oauth2-jose")
-
         implementation("org.springframework.boot:spring-boot-starter-security")
+
+
     }
 
     tasks.withType<KotlinCompile> {

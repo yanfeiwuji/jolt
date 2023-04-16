@@ -10,8 +10,10 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor
 import org.hibernate.id.IdentifierGenerator
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedBy
@@ -25,6 +27,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.NoRepositoryBean
 import org.springframework.security.access.annotation.Secured
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContext
 import org.springframework.web.bind.annotation.*
 import java.sql.Timestamp
 import java.util.*
@@ -68,7 +71,7 @@ open class JoltModel {
 @NoRepositoryBean
 interface JoltDao<T : JoltModel> : JpaRepository<T, Long>, JpaSpecificationExecutor<T>
 
-open class JoltApi<T : JoltModel>() {
+open class JoltApi<T : JoltModel> {
     @Autowired
     private lateinit var joltDao: JoltDao<T>
 
@@ -146,9 +149,12 @@ open class JoltApi<T : JoltModel>() {
 }
 
 @Configuration
-class JoltCrudConfiguration() {
+@EnableAutoConfiguration
+@Import(HandlerJoltException::class)
+class JoltCrudConfiguration {
     @Bean
     fun auditorAware() = AuditorAware {
+
         println("auditor")
         Optional.of("123")
     }

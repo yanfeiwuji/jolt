@@ -33,5 +33,6 @@ springdoc:
   swagger-ui:
     use-root-path: true
   enable-native-support: true
+
 server:
   port: 8089

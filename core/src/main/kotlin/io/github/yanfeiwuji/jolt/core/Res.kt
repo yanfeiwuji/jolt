@@ -59,6 +59,7 @@ class HandlerJoltException {
     @ExceptionHandler(JoltException::class)
     @ResponseStatus(HttpStatus.OK)
     fun handlerJoltException(joltException: JoltException): ResMsg {
+        println("exception")
         return joltException.resMsg
     }
 
