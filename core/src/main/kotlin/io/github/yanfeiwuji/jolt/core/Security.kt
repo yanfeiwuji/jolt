@@ -1,6 +1,8 @@
 package io.github.yanfeiwuji.jolt.core
 
 import cn.hutool.json.JSONUtil
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
+import io.swagger.v3.oas.annotations.security.*
 import org.springframework.context.annotation.AdviceMode
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,6 +49,12 @@ class JwtAuthConverter :
 
 @Configuration
 @EnableWebSecurity
+@SecuritySchemes(
+    SecurityScheme(
+        type = SecuritySchemeType.OAUTH2,
+        flows = OAuthFlows(implicit = OAuthFlow(authorizationUrl = "http://localhost:8080"))
+    )
+)
 class JoltSecurityConfig {
 
 
@@ -61,5 +69,6 @@ class JoltSecurityConfig {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         return http.build()
     }
+
 
 }

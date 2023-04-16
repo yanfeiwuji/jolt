@@ -4,6 +4,8 @@ import cn.hutool.core.util.IdUtil
 import io.github.perplexhub.rsql.RSQLJPASupport.toSpecification
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import jakarta.persistence.*
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.engine.spi.SharedSessionContractImplementor
@@ -120,7 +122,6 @@ open class JoltApi<T : JoltModel> {
     }
 
     @PutMapping("{id}")
-    @Operation(summary = "全量修改对象")
     fun put(@PathVariable @Schema(implementation = String::class) id: Long, @RequestBody entity: T): T {
 
         return joltDao.findById(id).map {

@@ -4,6 +4,8 @@ import io.github.yanfeiwuji.jolt.core.JoltApi
 import io.github.yanfeiwuji.jolt.core.JoltApplication
 import io.github.yanfeiwuji.jolt.core.JoltDao
 import io.github.yanfeiwuji.jolt.core.JoltModel
+import io.swagger.v3.oas.annotations.security.OAuthFlow
+import io.swagger.v3.oas.annotations.security.OAuthFlows
 import jakarta.persistence.Entity
 import org.springframework.boot.runApplication
 import org.springframework.security.access.prepost.PreAuthorize
