@@ -1,20 +1,32 @@
 package io.github.yanfeiwuji.jolt.core
 
 import cn.hutool.core.util.IdUtil
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.MappedSuperclass
+import io.github.perplexhub.rsql.RSQLJPASupport.toSpecification
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.persistence.*
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.engine.spi.SharedSessionContractImplementor
 import org.hibernate.id.IdentifierGenerator
+import org.springdoc.core.annotations.ParameterObject
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedBy
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.domain.AuditorAware
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.querydsl.QuerydslPredicateExecutor
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.NoRepositoryBean
+import org.springframework.security.access.annotation.Secured
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.*
+import java.sql.Timestamp
 import java.util.*
 
 
@@ -30,24 +42,115 @@ class SnowflakeIdGenerator : IdentifierGenerator {
 }
 
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener::class)
 open class JoltModel {
     @Id
+    @Schema(implementation = String::class)
     @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "snowflake")
     @GenericGenerator(name = "snowflake", strategy = "io.github.yanfeiwuji.jolt.core.SnowflakeIdGenerator")
-    private val id: Long? = null
+    var id: Long? = null
 
     @CreatedBy
-    private val createBy: String? = null
+    var createBy: String? = null
 
     @CreatedDate
-    private val createdDate: Date? = null
+    @Schema(implementation = Long::class)
+    var createdDate: Date? = null
 
     @LastModifiedBy
-    private val lastModifiedBy: String? = null
+    var lastModifiedBy: String? = null
 
     @LastModifiedDate
-    private val LastModifiedDate: Date? = null
+    @Schema(implementation = Long::class)
+    var lastModifiedDate: Date? = null
 }
 
 @NoRepositoryBean
-interface JoltDao<T : JoltModel> : JpaRepository<T, Long>, QuerydslPredicateExecutor<T>
+interface JoltDao<T : JoltModel> : JpaRepository<T, Long>, JpaSpecificationExecutor<T>
+
+open class JoltApi<T : JoltModel>() {
+    @Autowired
+    private lateinit var joltDao: JoltDao<T>
+
+    @GetMapping("{id}")
+    @Operation(summary = "获取单个对象")
+    operator fun get(
+        @PathVariable("id")
+        @Schema(implementation = String::class)
+        id: Long
+    ): T {
+        return joltDao.findById(id).orElseThrow { JoltException(ResMsg.ENTITY_NOT_FOUND) }
+    }
+
+    @GetMapping("single")
+    @Operation(summary = "查询单个对象")
+    fun single(filter: String? = ""): T {
+        return joltDao.findOne(toSpecification(filter))
+            .orElseThrow { JoltException(ResMsg.ENTITY_NOT_FOUND) }
+    }
+
+
+    @GetMapping("page")
+    @Operation(summary = "查询分页")
+    fun page(filter: String? = "", @ParameterObject pageable: Pageable): Page<T> {
+        return joltDao.findAll(toSpecification(filter), pageable)
+    }
+
+
+    /**
+     * 最大返回 2000 个
+     *
+     * @param
+     * @return
+     */
+    @GetMapping("list")
+    @Operation(summary = "查询列表")
+    fun list(filter: String? = ""): List<T> {
+        return joltDao.findAll(toSpecification(filter), Pageable.ofSize(2000))
+            .toList()
+    }
+
+    @PostMapping
+    @Operation(summary = "添加对象")
+    fun post(@RequestBody entity: T): T {
+        return joltDao.save(entity)
+    }
+
+    @PutMapping("{id}")
+    @Operation(summary = "全量修改对象")
+    fun put(@PathVariable @Schema(implementation = String::class) id: Long, @RequestBody entity: T): T {
+
+        return joltDao.findById(id).map {
+            entity.id = it.id
+            entity
+        }.map(joltDao::save)
+            .orElseThrow { JoltException(ResMsg.ENTITY_NOT_FOUND) }
+    }
+
+    @PatchMapping("{id}")
+    @Operation(summary = "增量修改对象")
+    fun patch(@PathVariable @Schema(implementation = String::class) id: Long, @RequestBody entity: T): T {
+
+        return joltDao.findById(id).map {
+            entity.id = it.id
+            DozerUtil.merger(entity, it)
+        }.map(joltDao::save)
+            .orElseThrow { JoltException(ResMsg.ENTITY_NOT_FOUND) }
+    }
+
+    @DeleteMapping("{id}")
+    fun delete(@PathVariable("id") @Schema(implementation = String::class) id: Long): Boolean {
+        joltDao.deleteById(id)
+        return true
+    }
+}
+
+@Configuration
+class JoltCrudConfiguration() {
+    @Bean
+    fun auditorAware() = AuditorAware {
+        println("auditor")
+        Optional.of("123")
+    }
+
+}
