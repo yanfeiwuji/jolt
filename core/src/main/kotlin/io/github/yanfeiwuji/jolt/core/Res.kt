@@ -5,6 +5,7 @@ import com.github.dozermapper.core.Mapper
 import cz.jirutka.rsql.parser.ParseException
 import io.github.perplexhub.rsql.RSQLSupport
 import jakarta.persistence.EntityManager
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.context.event.ApplicationStartedEvent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.event.EventListener
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import java.util.*
 
 
@@ -43,12 +46,11 @@ data class ResMsg(val errorCode: String, val errorMsg: String) {
 class JoltException(val resMsg: ResMsg) : RuntimeException()
 
 @RestControllerAdvice
-class HandlerJoltException {
-
-
-    @Bean
-    fun dozer(): Mapper {
-        return DozerBeanMapperBuilder.create().build()
+@EnableAutoConfiguration
+class JoltWebConfig : WebMvcConfigurer {
+    override fun addInterceptors(registry: InterceptorRegistry) {
+        registry.addInterceptor(WebLog())
+        super.addInterceptors(registry)
     }
 
     @EventListener(ApplicationStartedEvent::class)

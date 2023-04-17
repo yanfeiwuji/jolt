@@ -53,7 +53,10 @@ subprojects {
 
         runtimeOnly("com.mysql:mysql-connector-j")
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
         annotationProcessor("org.projectlombok:lombok")
+
+
         testImplementation("org.springframework.boot:spring-boot-starter-test")
 
         //
@@ -79,7 +82,9 @@ subprojects {
         // https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-jose
         implementation("org.springframework.security:spring-security-oauth2-jose")
         implementation("org.springframework.boot:spring-boot-starter-security")
-
+        // logger
+        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging
+        compileOnly("org.springframework.boot:spring-boot-starter-logging")
 
     }
 

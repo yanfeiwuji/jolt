@@ -151,7 +151,7 @@ open class JoltApi<T : JoltModel> {
 
 @Configuration
 @EnableAutoConfiguration
-@Import(HandlerJoltException::class)
+@Import(JoltWebConfig::class)
 class JoltCrudConfiguration {
     @Bean
     fun auditorAware() = AuditorAware {
