@@ -29,20 +29,13 @@ fun main(args: Array<String>) {
 }
 
 @Entity
-class SysUser : JoltModel() {
+class SysApp : JoltModel() {
     var name: String? = null
-    var age: Long? = null
+    var code: Long? = null
 }
 
-interface SysUserDao : JoltDao<SysUser>
+interface SysAppDao : JoltDao<SysApp>
 
 @RestController
-@RequestMapping("sysUser")
-@PreAuthorize("hasRole('ass')")
-class SysUserApi(sysUserDao: SysUserDao) : JoltApi<SysUser>() {
-    @GetMapping("/ass")
-    fun ass(@AuthenticationPrincipal jwt: Jwt): String {
-        println(jwt.subject)
-        return "123";
-    }
-}
+@RequestMapping("app")
+class SysAppApi : JoltApi<SysApp>()

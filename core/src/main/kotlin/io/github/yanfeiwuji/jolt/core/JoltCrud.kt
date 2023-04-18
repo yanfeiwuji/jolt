@@ -4,8 +4,6 @@ import cn.hutool.core.util.IdUtil
 import io.github.perplexhub.rsql.RSQLJPASupport.toSpecification
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import jakarta.persistence.*
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.engine.spi.SharedSessionContractImplementor
@@ -27,11 +25,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.NoRepositoryBean
-import org.springframework.security.access.annotation.Secured
-import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
-import java.sql.Timestamp
 import java.util.*
 
 
@@ -68,6 +64,12 @@ open class JoltModel {
     @LastModifiedDate
     @Schema(implementation = Long::class)
     var lastModifiedDate: Date? = null
+
+}
+
+open class JoltLabelsModel : JoltModel() {
+    @ElementCollection
+    var labels: List<String>? = null
 }
 
 @NoRepositoryBean
@@ -155,9 +157,8 @@ open class JoltApi<T : JoltModel> {
 class JoltCrudConfiguration {
     @Bean
     fun auditorAware() = AuditorAware {
-
-        println("auditor")
-        Optional.of("123")
+        Optional
+            .ofNullable((SecurityContextHolder.getContext().authentication.principal as Jwt).subject)
     }
 
 }

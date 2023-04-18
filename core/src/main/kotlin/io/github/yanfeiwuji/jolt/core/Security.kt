@@ -1,9 +1,7 @@
 package io.github.yanfeiwuji.jolt.core
 
-import cn.hutool.json.JSONUtil
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.security.*
-import org.springframework.context.annotation.AdviceMode
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
@@ -25,7 +23,7 @@ import java.util.Objects
  * @author  yanfeiwuji
  * @date  2023/4/16 21:23
  */
-class JwtAuthConverter :
+class JwtAuthConverter(private val clientId: String) :
     Converter<Jwt, AbstractAuthenticationToken> {
 
     override fun convert(jwt: Jwt): AbstractAuthenticationToken {
@@ -35,7 +33,7 @@ class JwtAuthConverter :
     private fun extractResourceRoles(jwt: Jwt): Set<GrantedAuthority> {
         return (
                 ((jwt.claims["resource_access"] as Map<*, *>)
-                    ["spring"] as Map<*, *>)
+                    [clientId] as Map<*, *>)
                     ["roles"] as List<*>
                 )
             .filter(Objects::nonNull)
@@ -49,14 +47,10 @@ class JwtAuthConverter :
 
 @Configuration
 @EnableWebSecurity
-@SecuritySchemes(
-    SecurityScheme(
-        type = SecuritySchemeType.OAUTH2,
-        flows = OAuthFlows(implicit = OAuthFlow(authorizationUrl = "http://localhost:8080"))
-    )
-)
 class JoltSecurityConfig {
 
+    @Value("\${keycloak.clientId}")
+    val clientId: String = ""
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -64,8 +58,9 @@ class JoltSecurityConfig {
             .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
             .permitAll()
             .anyRequest().authenticated()
+
         http.oauth2ResourceServer().jwt()
-            .jwtAuthenticationConverter(JwtAuthConverter())
+            .jwtAuthenticationConverter(JwtAuthConverter(clientId))
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         return http.build()
     }
