@@ -31,11 +31,7 @@ class JwtAuthConverter(private val clientId: String) :
     }
 
     private fun extractResourceRoles(jwt: Jwt): Set<GrantedAuthority> {
-        return (
-                ((jwt.claims["resource_access"] as Map<*, *>)
-                    [clientId] as Map<*, *>)
-                    ["roles"] as List<*>
-                )
+        return (((jwt.claims["resource_access"] as Map<*, *>)[clientId] as Map<*, *>)["roles"] as List<*>)
             .filter(Objects::nonNull)
             .distinct()
             .map { it.toString() }

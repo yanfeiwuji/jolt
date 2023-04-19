@@ -30,6 +30,7 @@ spring:
 keycloak:
   clientId: spring
 
+
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:

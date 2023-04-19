@@ -51,7 +51,7 @@ class JoltWebConfig : WebMvcConfigurer {
     fun initRsqlSupport(event: ApplicationStartedEvent) {
         RSQLSupport(event.applicationContext.getBeansOfType(EntityManager::class.java))
         //
-        RSQLSupport.addConverter(Date::class.java) { DateUtil.date(it.toLong()) }
+        RSQLSupport.addConverter(Date::class.java) { DateUtil.date(it.toLong() * 1000) }
     }
 
     @ExceptionHandler(JoltException::class)
