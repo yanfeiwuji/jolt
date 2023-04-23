@@ -27,12 +27,6 @@ spring:
           issuer-uri: http://localhost:8080/realms/spring
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 
-# springdoc-openapi项目配置
-springdoc:
-  swagger-ui:
-    use-root-path: true
-  enable-native-support: true
-
 keycloak:
   clientId: spring
 
@@ -41,6 +35,14 @@ keycloak-admin:
   password: admin
   realm: master
   server-url: http://localhost:8080
+
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    use-root-path: true
+  enable-native-support: true
+
 server:
   port: 8086
 

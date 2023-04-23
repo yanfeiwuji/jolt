@@ -9,11 +9,17 @@ import io.github.perplexhub.rsql.RSQLSupport
 import jakarta.persistence.EntityManager
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.context.event.ApplicationStartedEvent
+import org.springframework.context.annotation.Bean
 import org.springframework.context.event.EventListener
+import org.springframework.data.domain.AuditorAware
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.servlet.config.annotation.CorsRegistry
+import org.springframework.web.servlet.config.annotation.EnableWebMvc
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import java.util.*
 
@@ -45,6 +51,7 @@ class JoltException(val resMsg: ResMsg) : RuntimeException()
 
 @RestControllerAdvice
 @EnableAutoConfiguration
+@EnableWebMvc
 class JoltWebConfig : WebMvcConfigurer {
 
     @EventListener(ApplicationStartedEvent::class)
@@ -78,5 +85,20 @@ class JoltWebConfig : WebMvcConfigurer {
                 "message" to exception.message
             )
         )
+    }
+
+    override fun addCorsMappings(registry: CorsRegistry) {
+        registry.addMapping("/**")
+            .allowedOriginPatterns("*")
+            .allowedMethods("*")
+            .allowedHeaders("*")
+            .allowCredentials(true)
+            .maxAge(3600)
+    }
+
+    @Bean
+    fun auditorAware() = AuditorAware {
+        Optional
+            .ofNullable((SecurityContextHolder.getContext().authentication.principal as Jwt).subject)
     }
 }

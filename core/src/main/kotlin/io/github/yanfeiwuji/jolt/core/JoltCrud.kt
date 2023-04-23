@@ -150,15 +150,3 @@ open class JoltApi<T : JoltModel> {
         return true
     }
 }
-
-@Configuration
-@EnableAutoConfiguration
-@Import(JoltWebConfig::class)
-class JoltCrudConfiguration {
-    @Bean
-    fun auditorAware() = AuditorAware {
-        Optional
-            .ofNullable((SecurityContextHolder.getContext().authentication.principal as Jwt).subject)
-    }
-
-}

@@ -1,10 +1,10 @@
 HELP.md
 .gradle
 build/
-
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+app-logs
 
 ### STS ###
 .apt_generated
@@ -36,4 +36,3 @@ out/
 
 ### VS Code ###
 .vscode/
-

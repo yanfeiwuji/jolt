@@ -45,6 +45,9 @@ subprojects {
     }
 
     dependencies {
+        if(name != "core"){
+            implementation(project(":core"))
+        }
         implementation("org.springframework.boot:spring-boot-starter-data-jpa")
         implementation("org.springframework.boot:spring-boot-starter-web")
         implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -87,6 +90,10 @@ subprojects {
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging
         compileOnly("org.springframework.boot:spring-boot-starter-logging")
 
+
+        // https://mvnrepository.com/artifact/org.keycloak/keycloak-admin-client
+        //
+        implementation("org.keycloak:keycloak-admin-client:21.0.2")
     }
 
     tasks.withType<KotlinCompile> {
@@ -94,6 +101,17 @@ subprojects {
             freeCompilerArgs = listOf("-Xjsr305=strict")
             jvmTarget = "17"
         }
+    }
+
+    sourceSets {
+        // 为所有子项目添加 core的配置 除 core外
+
+        if (name != "core") {
+            main {
+                resources.srcDir("core/src/main/resources")
+            }
+        }
+
     }
 
 
@@ -109,6 +127,7 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
     }
+
 
 }
 
