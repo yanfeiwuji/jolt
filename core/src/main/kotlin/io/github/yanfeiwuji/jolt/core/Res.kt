@@ -88,17 +88,22 @@ class JoltWebConfig : WebMvcConfigurer {
     }
 
     override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**")
+
+        registry
+            .addMapping("/**")
             .allowedOriginPatterns("*")
             .allowedMethods("*")
             .allowedHeaders("*")
             .allowCredentials(true)
             .maxAge(3600)
+
     }
 
     @Bean
     fun auditorAware() = AuditorAware {
         Optional
-            .ofNullable((SecurityContextHolder.getContext().authentication.principal as Jwt).subject)
+            .ofNullable(
+                (SecurityContextHolder.getContext().authentication.principal as Jwt).subject
+            )
     }
 }

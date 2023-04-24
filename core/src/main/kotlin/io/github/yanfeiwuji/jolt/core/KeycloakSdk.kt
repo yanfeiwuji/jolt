@@ -36,23 +36,6 @@ annotation class EnableKeycloakSdk
 @Import(KeycloakProperty::class)
 class KeycloakSdk {
 
-//    @Value("\${keycloak-admin.server-url}")
-//    val keycloakUrl: String? = null
-//
-//    @Value("\${keycloak-admin.realm}")
-//    val keycloakRealm: String? = null
-//
-//
-//    @Value("\${keycloak-admin.username}")
-//    val keycloakUsername: String? = null
-//
-//    @Value("\${keycloak-admin.password}")
-//    val keycloakPassword: String? = null
-//
-//    // 从application.yaml 获取 issuer-uri
-//    @Value("\${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-//    val issuerUri: String? = null
-
 
     @Bean
     fun realmResource(

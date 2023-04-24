@@ -29,6 +29,4 @@ interface S3ConfigDao : JoltDao<S3Config>
 //
 @RestController
 @RequestMapping("s3/config")
-class S3ConfigApi : JoltApi<S3Config>() {
-
-}
+class S3ConfigApi : JoltApi<S3Config>()

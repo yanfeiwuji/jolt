@@ -8,9 +8,9 @@ import java.util.Objects
  * @author  yanfeiwuji
  * @date  2023/4/16 13:54
  */
-class DozerUtil {  
+class DozerUtil {
 
-    companion object { 
+    companion object {
         @JvmStatic
         private val MAPPER: Mapper = DozerBeanMapperBuilder.create()
             .withCustomFieldMapper { _, _, sourceFieldValue, _, _ ->

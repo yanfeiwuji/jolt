@@ -1,6 +1,7 @@
 package io.github.yanfeiwuji.jolt.core
 
 import cn.hutool.core.lang.Snowflake
+import cn.hutool.extra.spring.EnableSpringUtil
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.parameters.Parameter
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding
@@ -54,5 +55,6 @@ class YamlPropertySourceFactory : PropertySourceFactory {
 )
 @EnableAspectJAutoProxy
 @EnableKeycloakSdk
+@EnableSpringUtil
 annotation class JoltApplication
 
