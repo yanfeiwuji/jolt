@@ -43,6 +43,3 @@ springdoc:
     use-root-path: true
   enable-native-support: true
 
-server:
-  port: 8086
-

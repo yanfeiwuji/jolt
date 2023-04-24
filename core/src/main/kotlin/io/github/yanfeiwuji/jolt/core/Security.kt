@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil
 import io.swagger.v3.oas.annotations.security.*
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityManager
+import lombok.extern.slf4j.Slf4j
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.admin.client.resource.RoleResource
 import org.keycloak.admin.client.resource.RolesResource
@@ -53,6 +54,8 @@ class JwtAuthConverter(private val clientId: String) : Converter<Jwt, AbstractAu
 @EnableWebSecurity
 class JoltSecurityConfig(val realmResource: RealmResource) {
 
+
+
     @Value("\${keycloak.clientId}")
     val clientId: String = ""
 
@@ -72,8 +75,11 @@ class JoltSecurityConfig(val realmResource: RealmResource) {
 
                 // 生成权限
                 HttpSecurityExt.defaultExtByName(http, it)
+
                 // 删除角色
-                rolesResource?.list()?.map(RoleRepresentation::getName)
+                rolesResource
+                    ?.list()
+                    ?.map(RoleRepresentation::getName)
                     ?.forEach(rolesResource::deleteRole)
                 // 生成角色
                 create(rolesResource, "get:$it")

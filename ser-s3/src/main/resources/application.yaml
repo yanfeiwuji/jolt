@@ -1,3 +1,9 @@
+server:
+  port: 8088
 spring:
-  profiles:
-    include: core.yaml
+  config:
+    import: core.yaml
+  datasource:
+    url: jdbc:mysql://localhost:3306/yfwj?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: lian8419
