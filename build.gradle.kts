@@ -15,6 +15,10 @@ plugins {
 
 repositories {
     mavenLocal()
+
+    maven(url = "https://maven.aliyun.com/repository/public/")
+    maven(url = "https://maven.aliyun.com/repository/spring/")
+
     mavenCentral()
 }
 
@@ -45,7 +49,7 @@ subprojects {
     }
 
     dependencies {
-        if(name != "core"){
+        if (name != "core") {
             implementation(project(":core"))
         }
         implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -68,11 +72,9 @@ subprojects {
         implementation("cn.hutool:hutool-all:$hutoolVersion")
 
         implementation("io.github.perplexhub:rsql-jpa-specification:6.0.4")
-
         // 文档
         implementation("com.github.xiaoymin:knife4j-openapi3-jakarta-spring-boot-starter:${knife4jVersion}")
         implementation("org.springframework.boot:spring-boot-starter-validation")
-
         // dozer
         implementation("com.github.dozermapper:dozer-core:$dozerVersion")
         implementation("javax.xml.bind:jaxb-api:2.3.1")
@@ -85,32 +87,19 @@ subprojects {
         implementation("org.springframework.security:spring-security-oauth2-resource-server")
         // https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-jose
         implementation("org.springframework.security:spring-security-oauth2-jose")
+
         implementation("org.springframework.boot:spring-boot-starter-security")
         // logger
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging
         compileOnly("org.springframework.boot:spring-boot-starter-logging")
 
-
         // https://mvnrepository.com/artifact/org.keycloak/keycloak-admin-client
-        //
         implementation("org.keycloak:keycloak-admin-client:21.0.2")
-    }
 
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "17"
-        }
-    }
+        implementation("org.springframework.cloud:spring-cloud-starter-vault-config:4.0.1")
+        // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-vault-config-databases
+        implementation("org.springframework.cloud:spring-cloud-vault-config-databases:4.0.1")
 
-    sourceSets {
-        // 为所有子项目添加 core的配置 除 core外
-
-        if (name != "core") {
-            main {
-                resources.srcDir("core/src/main/resources")
-            }
-        }
 
     }
 
@@ -123,9 +112,15 @@ subprojects {
         }
     }
 
-
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "17"
+        }
     }
 
 

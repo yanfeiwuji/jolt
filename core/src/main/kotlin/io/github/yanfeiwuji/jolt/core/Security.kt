@@ -1,18 +1,12 @@
 package io.github.yanfeiwuji.jolt.core
 
-import cn.hutool.core.util.StrUtil
+
 import cn.hutool.extra.spring.SpringUtil
 import io.swagger.v3.oas.annotations.security.*
-import jakarta.annotation.security.PermitAll
-import jakarta.persistence.Entity
-import jakarta.persistence.EntityManager
 import lombok.extern.slf4j.Slf4j
 import org.keycloak.admin.client.resource.RealmResource
-import org.keycloak.admin.client.resource.RoleResource
 import org.keycloak.admin.client.resource.RolesResource
 import org.keycloak.representations.idm.RoleRepresentation
-import org.springdoc.core.utils.SpringDocAnnotationsUtils
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
@@ -31,9 +25,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.servlet.HandlerMapping
 import java.util.*
-import kotlin.reflect.full.hasAnnotation
 
 
 /**
@@ -47,10 +39,20 @@ class JwtAuthConverter(private val clientId: String) : Converter<Jwt, AbstractAu
     }
 
     private fun extractResourceRoles(jwt: Jwt): Set<GrantedAuthority> {
-        return (((jwt.claims["resource_access"] as Map<*, *>)[clientId] as Map<*, *>)["roles"] as List<*>).filter(
-            Objects::nonNull
-        ).distinct().map { it.toString() }.map { SimpleGrantedAuthority("ROLE_$it") }.toSet()
-
+        return Optional.ofNullable(jwt)
+            .map(Jwt::getClaims)
+            .map { it["resource_access"] }
+            .map(Map::class.java::cast)
+            .map { it[clientId] }
+            .map(Map::class.java::cast)
+            .map { it["roles"] }
+            .map(List::class.java::cast)
+            .map { roles ->
+                roles.filter(Objects::nonNull)
+                    .distinct()
+                    .map { SimpleGrantedAuthority("ROLE_$it") }
+                    .toSet()
+            }.orElse(emptySet())
     }
 }
 
@@ -67,66 +69,55 @@ class JoltSecurityConfig(val realmResource: RealmResource) {
         // roleResource create role
         @JvmStatic
         private fun create(rolesResource: RolesResource?, roleName: String) {
+            // log
+
             rolesResource?.create(RoleRepresentation(roleName, roleName, false))
         }
+
 
         @JvmStatic
         fun defaultAuth(http: HttpSecurity) {
             // get clientId
-            val clientId = SpringUtil.getProperty("keycloak.clientId")
+            val rolesResource = SpringUtil.getBean(RolesResource::class.java)
+            val currentRoles = rolesResource.list().map { it.name }
 
-            val realmResource = SpringUtil.getBean(RealmResource::class.java);
-
-            val rolesResource =
-                realmResource.clients().findByClientId(clientId)[0].id?.let { realmResource.clients().get(it).roles() }
-            val currentRoles = rolesResource?.list()?.map { it.name }?.toList()
             // 生成权限
             val joltApis = SpringUtil.getBeansOfType(JoltApi::class.java)
-            joltApis.map { it.value }
-                .map { it.javaClass }
-                .map {
-                    val baseUrl = it
-                        .getAnnotation(RequestMapping::class.java)?.value?.get(0) ?: "".trim('/')
-                    it.methods.filter { method ->
-                        AnnotationUtils.getAnnotation(method, RequestMapping::class.java) != null
-                    }.forEach { method ->
-                        val requestMapping =
-                            AnnotationUtils.getAnnotation(method, RequestMapping::class.java) ?: return@forEach
-                        requestMapping.value.size
-                        val httpMethod = requestMapping.method[0].asHttpMethod()
-                        val requestMethod = httpMethod.name().lowercase(Locale.getDefault())
-                        val requestUrl = if (requestMapping.value.isNotEmpty())
-                            "/$baseUrl/${requestMapping.value[0].trim('/')}"
+            joltApis.map { it.value }.map { it.javaClass }.map {
+                val baseUrl = it.getAnnotation(RequestMapping::class.java)?.value?.get(0) ?: "".trim('/')
+                it.methods.filter { method ->
+                    AnnotationUtils.getAnnotation(method, RequestMapping::class.java) != null
+                }.forEach { method ->
+                    val requestMapping =
+                        AnnotationUtils.getAnnotation(method, RequestMapping::class.java) ?: return@forEach
+                    requestMapping.value.size
+                    val httpMethod = requestMapping.method[0].asHttpMethod()
+                    val requestMethod = httpMethod.name().lowercase(Locale.getDefault())
+                    val requestUrl =
+                        if (requestMapping.value.isNotEmpty()) "/$baseUrl/${requestMapping.value[0].trim('/')}"
                         else {
                             baseUrl
                         }
 
-                        val role =
-                            "${requestMethod.lowercase(Locale.getDefault())}:${method.name}:$requestUrl".replace(
-                                "/",
-                                ":"
-                            )
-                        // add role
-                        http.authorizeHttpRequests()
-                            .requestMatchers(httpMethod, requestUrl)
-                            .hasRole(role)
-                        // add role to keycloak
-                        if (currentRoles?.contains(role) != true) {
+                    val role = "${requestMethod.lowercase(Locale.getDefault())}:${method.name}:$requestUrl".replace(
+                        "/", ":"
+                    )
 
-                            create(rolesResource, role)
-                        }
-
+                    // add role
+                    http.authorizeHttpRequests().requestMatchers(httpMethod, requestUrl).hasRole(role)
+                    println("${httpMethod.name()} $requestUrl -> $role")
+                    // add role to keycloak
+                    if (!currentRoles.contains(role)) {
+                        create(rolesResource, role)
                     }
 
                 }
-
-
+            }
         }
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @Order(Int.MAX_VALUE)
     fun httpSecurityExt(): HttpSecurityExt {
         return HttpSecurityExt { defaultAuth(it) }
     }
@@ -138,8 +129,18 @@ class JoltSecurityConfig(val realmResource: RealmResource) {
         //  扩展
         httpSecurityExt.ext(http)
         // 开启swagger
-        http.authorizeHttpRequests().requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
-            .permitAll().anyRequest().authenticated()
+        http.authorizeHttpRequests()
+            .requestMatchers(
+                "/",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v3/api-docs/**",
+                "/doc.html",
+                "/webjars/**"
+            )
+            .permitAll()
+
+        http.authorizeHttpRequests().anyRequest().authenticated()
 
         // 开启跨域
         http.cors()
@@ -148,7 +149,6 @@ class JoltSecurityConfig(val realmResource: RealmResource) {
         // 开启oauth2
         http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(JwtAuthConverter(clientId))
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
         return http.build()
     }
 
@@ -172,9 +172,26 @@ fun interface HttpSecurityExt {
 
         @JvmStatic
         fun defaultExtByNames(http: HttpSecurity, strs: List<String>) {
-            strs.filter(Objects::nonNull).filter { it.isNotBlank() }.forEach {
-                defaultExtByName(http, it)
+            strs.filter(Objects::nonNull)
+                .filter { it.isNotBlank() }
+                .forEach {
+                    defaultExtByName(http, it)
+                }
+        }
+
+        @JvmStatic
+        fun addRoleToClient(roleName: String) {
+            // get clientId
+            val rolesResource = SpringUtil.getBean(RolesResource::class.java)
+            // add role to keycloak
+            // get role
+            val roles = rolesResource.list().map {
+                it.name
             }
+            if (roles.contains(roleName)) {
+                return
+            }
+            rolesResource.create(RoleRepresentation(roleName, roleName, false))
         }
     }
 

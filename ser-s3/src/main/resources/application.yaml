@@ -7,3 +7,5 @@ spring:
     url: jdbc:mysql://localhost:3306/yfwj?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: lian8419
+  application:
+    name: ser-s3

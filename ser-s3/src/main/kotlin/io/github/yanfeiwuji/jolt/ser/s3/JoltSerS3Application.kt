@@ -1,7 +1,10 @@
 package io.github.yanfeiwuji.jolt.ser.s3
 
+import io.github.yanfeiwuji.jolt.core.HttpSecurityExt
 import io.github.yanfeiwuji.jolt.core.JoltApplication
+import io.github.yanfeiwuji.jolt.core.JoltSecurityConfig
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
 
 /**
  * @author  yanfeiwuji

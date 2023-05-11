@@ -1,46 +1,28 @@
-spring:
-  jpa:
-    generate-ddl: true
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-  datasource:
-    url: jdbc:mysql://localhost:3306/yfwj?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: lian8419
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jackson:
-    default-property-inclusion: non_null
-    serialization:
-      write-dates-as-timestamps: true
-      write-date-timestamps-as-nanoseconds: true
-      write-date-keys-as-timestamps: true
-    deserialization:
-      read-date-timestamps-as-nanoseconds: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/spring
-          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 
-# springdoc-openapi项目配置
-springdoc:
-  swagger-ui:
-    use-root-path: true
-  enable-native-support: true
-
-keycloak:
-  clientId: spring
-
-keycloak-admin:
-  username: admin
-  password: admin
-  realm: master
-  server-url: http://localhost:8080
 server:
   port: 8086
+spring:
+  config:
+    import: vault://secret/core.conf
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/yfwj?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+    password: lian8419
+  application:
+    name: keycloak-app
+  cloud:
+    vault:
+      host: localhost
+      port: 8200
+      scheme: http
+      uri: ${spring.cloud.vault.scheme}://${spring.cloud.vault.host}:${spring.cloud.vault.port}
+      token: hvs.ULiec1L3q6bJDx37yo5Pv1CA
+
+      database:
+        enabled: true
+
+
+
+
+
+
 
